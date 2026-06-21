@@ -23,9 +23,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pwdnote/pwdnote"
-Repository = "https://github.com/pwdnote/pwdnote"
-Issues = "https://github.com/pwdnote/pwdnote/issues"
+Homepage = "https://https://github.com/inspiringsource/pwdnote"
+Repository = "https://https://github.com/inspiringsource/pwdnote"
+Issues = "https://https://github.com/inspiringsource/pwdnote/issues"
 
 [project.scripts]
 pwdnote = "pwdnote.cli:app"

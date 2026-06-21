@@ -128,7 +128,7 @@ macOS Keychain, 1Password, `age`, or GPG key backends.
 ## Contributing
 
 ```bash
-git clone https://github.com/pwdnote/pwdnote
+git clone https://https://github.com/inspiringsource/pwdnote
 cd pwdnote
 uv sync                 # install deps + dev tools
 uv run pytest           # run the test suite
