@@ -92,6 +92,18 @@ So from `project/backend/api`, running `pwdnote` finds
 
 ---
 
+## About the `.pwdnote.enc` file in this repository
+
+This repository intentionally includes a `.pwdnote.enc` file as an example.
+
+The file is encrypted and contains no readable plaintext. Its presence demonstrates one of the core design goals of `pwdnote`: encrypted project notes can be safely stored alongside source code and committed to Git.
+
+By default, `.pwdnote.enc` is intended to be committed. If you prefer not to commit project notes, add `.pwdnote.enc` to your `.gitignore` manually.
+
+However, committing `.pwdnote.enc` is generally safe because the contents remain encrypted and cannot be read without the corresponding key.
+
+---
+
 ## Security model
 
 - **Authenticated encryption.** Notes are encrypted with
@@ -128,7 +140,7 @@ macOS Keychain, 1Password, `age`, or GPG key backends.
 ## Contributing
 
 ```bash
-git clone https://https://github.com/inspiringsource/pwdnote
+git clone https://github.com/inspiringsource/pwdnote
 cd pwdnote
 uv sync                 # install deps + dev tools
 uv run pytest           # run the test suite
