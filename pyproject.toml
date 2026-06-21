@@ -1,6 +1,6 @@
 [project]
 name = "pwdnote"
-version = "0.1.1"
+version = "0.1.2"
 description = "Encrypted, project-local notes for your terminal."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -23,9 +23,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://https://github.com/inspiringsource/pwdnote"
-Repository = "https://https://github.com/inspiringsource/pwdnote"
-Issues = "https://https://github.com/inspiringsource/pwdnote/issues"
+Homepage = "https://github.com/inspiringsource/pwdnote"
+Repository = "https://github.com/inspiringsource/pwdnote"
+Issues = "https://github.com/inspiringsource/pwdnote/issues"
 
 [project.scripts]
 pwdnote = "pwdnote.cli:app"

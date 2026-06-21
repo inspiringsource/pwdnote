@@ -13,6 +13,10 @@ commit; without your key it is just ciphertext.
 `pwdnote` is *not* a cloud service, a note-taking app, a password manager, a
 database, or a sync platform. It does one small thing well.
 
+## Demo
+
+![pwdnote demo](demo/shortDemo.gif)
+
 ---
 
 ## Installation
@@ -100,7 +104,7 @@ The file contains real project note data encrypted by pwdnote. It is included to
 
 The repository stores only ciphertext. Without the corresponding encryption key, the contents cannot be read.
 
-By default, .pwdnote.enc is designed to be commit-safe. If you prefer not to commit project notes simply use `add .pwdnote.enc` and the file will be ignored by Git.
+By default, `.pwdnote.enc` is designed to be commit-safe. If you prefer not to commit your project notes, you can manually add `.pwdnote.enc` to your `.gitignore` and Git will ignore the file.
 
 ---
 
