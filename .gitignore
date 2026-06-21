@@ -1,0 +1,24 @@
+# pwdnote runtime artifacts (never commit decrypted/temporary notes)
+.pwdnote.tmp
+.pwdnote.cache
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# OS
+.DS_Store
