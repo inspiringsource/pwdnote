@@ -94,13 +94,13 @@ So from `project/backend/api`, running `pwdnote` finds
 
 ## About the `.pwdnote.enc` file in this repository
 
-This repository intentionally includes a `.pwdnote.enc` file as an example.
+This repository intentionally includes a .pwdnote.enc file.
 
-The file is encrypted and contains no readable plaintext. Its presence demonstrates one of the core design goals of `pwdnote`: encrypted project notes can be safely stored alongside source code and committed to Git.
+The file contains real project note data encrypted by pwdnote. It is included to demonstrate one of the core design goals of the tool: project notes can be stored alongside source code and committed to Git while remaining encrypted on disk.
 
-By default, `.pwdnote.enc` is intended to be committed. If you prefer not to commit project notes, add `.pwdnote.enc` to your `.gitignore` manually.
+The repository stores only ciphertext. Without the corresponding encryption key, the contents cannot be read.
 
-However, committing `.pwdnote.enc` is generally safe because the contents remain encrypted and cannot be read without the corresponding key.
+By default, .pwdnote.enc is designed to be commit-safe. If you prefer not to commit project notes simply use `add .pwdnote.enc` and the file will be ignored by Git.
 
 ---
 
