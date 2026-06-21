@@ -1,5 +1,7 @@
 # pwdnote
 
+[![PyPI version](https://img.shields.io/pypi/v/pwdnote.svg)](https://pypi.org/project/pwdnote/)
+
 **Encrypted, project-local notes for your terminal.**
 
 `pwdnote` keeps project-specific notes — TODOs, deployment notes, AWS account
@@ -52,33 +54,6 @@ pwdnote add "Remember to rotate AWS credentials" # appends a new line
 | `pwdnote add "text"` | Append `- text` to the note without opening an editor. |
 | `pwdnote status` | Show the project root, note file, and encryption status. |
 | `pwdnote gitignore` | Add recommended ignore entries (`.pwdnote.tmp`, `.pwdnote.cache`). |
-
-### Examples
-
-```bash
-$ pwdnote
-TODO:
-- rotate AWS keys
-- update deployment docs
-Notes:
-Client requested staging environment.
-
-$ pwdnote status
-Project root:
-  ~/projects/example
-Note file:
-  .pwdnote.enc
-Encrypted:
-  Yes
-```
-
-If no note exists yet:
-
-```
-No project note found.
-Run:
-  pwdnote init
-```
 
 ---
 
