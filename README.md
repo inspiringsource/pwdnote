@@ -33,7 +33,7 @@ cd my-project
 pwdnote init                                  # create .pwdnote.enc
 pwdnote edit                                  # open it in your editor
 pwdnote                                        # print the decrypted note
-pwdnote add "Remember to rotate AWS credentials"
+pwdnote add "Remember to rotate AWS credentials" # appends a new line
 ```
 
 ---
