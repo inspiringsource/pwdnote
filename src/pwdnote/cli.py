@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import NoReturn
 
 import typer
 from rich.console import Console
 
+from . import __version__
 from . import editor as editor_mod
 from . import notes, project, settings
 from .config import load_or_create_key
@@ -28,6 +30,15 @@ console = Console()
 
 def _fail(message: str) -> NoReturn:
     console.print(message)
+    raise typer.Exit(code=1)
+
+
+def _err(message: str) -> NoReturn:
+    """Fail an integration command with a clean, human-readable stderr message.
+
+    Keeps stdout reserved for machine-consumable output.
+    """
+    print(message, file=sys.stderr)
     raise typer.Exit(code=1)
 
 
@@ -74,8 +85,23 @@ def _read_existing() -> tuple[Path, bytes, str]:
     return note_path, key, text
 
 
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"pwdnote {__version__}")
+        raise typer.Exit()
+
+
 @app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
+def main(
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        False,
+        "--version",
+        help="Print the pwdnote version and exit.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
+) -> None:
     """Show the decrypted project note when no subcommand is given."""
     if ctx.invoked_subcommand is not None:
         return
@@ -159,6 +185,68 @@ def gitignore() -> None:
     console.print(f"Added to {root / '.gitignore'}:")
     for entry in to_add:
         console.print(f"  {entry}")
+
+
+# --- Integration commands (for editors/extensions) ------------------------
+# These print machine-consumable output to stdout and human-readable errors to
+# stderr. They never log decrypted note content beyond the requested output.
+
+
+@app.command()
+def read() -> None:
+    """Decrypt and print the current project note to stdout (no formatting)."""
+    note_path = project.find_existing_note(Path.cwd())
+    if note_path is None:
+        _err("No project note found.")
+    key = load_or_create_key()
+    try:
+        text = notes.read_note(note_path, key)
+    except DecryptionError:
+        _err("Unable to decrypt project note.")
+    except PermissionError:
+        _err("Unable to access note file.")
+    sys.stdout.write(text)
+
+
+@app.command()
+def write(
+    stdin: bool = typer.Option(
+        False, "--stdin", help="Read the new note content from stdin."
+    ),
+    create: bool = typer.Option(
+        False, "--create", help="Create the note if it does not already exist."
+    ),
+) -> None:
+    """Replace the current project note with content read from stdin."""
+    if not stdin:
+        _err("write requires --stdin.")
+    content = sys.stdin.read()
+    note_path = project.find_existing_note(Path.cwd())
+    if note_path is None:
+        if not create:
+            _err("No project note found. Pass --create to create one.")
+        note_path = project.note_path_for(project.resolve_project_root(Path.cwd()))
+    key = load_or_create_key()
+    try:
+        notes.write_note(note_path, key, content)
+    except PermissionError:
+        _err("Unable to access note file.")
+
+
+@app.command()
+def root() -> None:
+    """Print the detected project root path to stdout."""
+    typer.echo(str(project.resolve_project_root(Path.cwd())))
+
+
+@app.command(name="note-path")
+def note_path() -> None:
+    """Print the resolved .pwdnote.enc path (existing, or where it would be created)."""
+    existing = project.find_existing_note(Path.cwd())
+    if existing is not None:
+        typer.echo(str(existing))
+        return
+    typer.echo(str(project.note_path_for(project.resolve_project_root(Path.cwd()))))
 
 
 @config_app.command("path")

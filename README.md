@@ -113,6 +113,24 @@ So from `project/backend/api`, running `pwdnote` finds
 
 ---
 
+## Editor integrations
+
+`pwdnote` exposes a few non-interactive commands for tools such as a VS Code
+extension:
+
+| Command | Purpose |
+| --- | --- |
+| `pwdnote read` | Print the decrypted note to stdout (no formatting). |
+| `pwdnote write --stdin` | Replace the note with content from stdin (add `--create` to create it). |
+| `pwdnote root` | Print the detected project root. |
+| `pwdnote note-path` | Print the resolved `.pwdnote.enc` path. |
+
+These write machine-readable output to stdout and errors to stderr. Encryption
+is always handled by the CLI, so integrations never touch the key or the file
+format.
+
+---
+
 ## About the `.pwdnote.enc` file in this repository
 
 This repository intentionally includes a .pwdnote.enc file.
