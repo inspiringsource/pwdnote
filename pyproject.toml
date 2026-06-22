@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/inspiringsource/pwdnote"
+Homepage = "https://inspiringsource.github.io/pwdnote/"
 Repository = "https://github.com/inspiringsource/pwdnote"
 Issues = "https://github.com/inspiringsource/pwdnote/issues"
 
