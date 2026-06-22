@@ -1,4 +1,4 @@
-# pwdnote
+# pwdNote
 
 [![PyPI version](https://img.shields.io/pypi/v/pwdnote.svg)](https://pypi.org/project/pwdnote/)
 
@@ -12,12 +12,11 @@ It is **local-first**, **encrypted-by-default**, **Git-friendly**, and
 **terminal-native**. The single encrypted file (`.pwdnote.enc`) is safe to
 commit; without your key it is just ciphertext.
 
-`pwdnote` is *not* a cloud service, a note-taking app, a password manager, a
-database, or a sync platform. It does one small thing well.
+`pwdnote` started as a simple way to keep personal project notes close to my code, without worrying about accidentally committing secrets or overcomplicating the workflow.
 
 ## Demo
 
-![pwdnote demo](demo/shortDemo.gif)
+![pwdnote demo](https://raw.githubusercontent.com/inspiringsource/pwdnote/main/demo/shortDemo.gif)
 
 ---
 
