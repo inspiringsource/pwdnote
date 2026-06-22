@@ -37,11 +37,11 @@ def write_note(path: Path, key: bytes, text: str) -> None:
     path.write_bytes(encrypt_text(text, key))
 
 
-def init_note(path: Path, key: bytes) -> None:
-    """Create a new note with the default starter content."""
+def init_note(path: Path, key: bytes, content: str = INITIAL_CONTENT) -> None:
+    """Create a new note with the given starter content."""
     if path.exists():
         raise NoteExistsError(str(path))
-    write_note(path, key, INITIAL_CONTENT)
+    write_note(path, key, content)
 
 
 def append_line(path: Path, key: bytes, text: str) -> str:

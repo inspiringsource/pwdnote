@@ -54,6 +54,49 @@ pwdnote add "Remember to rotate AWS credentials" # appends a new line
 | `pwdnote add "text"` | Append `- text` to the note without opening an editor. |
 | `pwdnote status` | Show the project root, note file, and encryption status. |
 | `pwdnote gitignore` | Add recommended ignore entries (`.pwdnote.tmp`, `.pwdnote.cache`). |
+| `pwdnote config path` | Print the config file path. |
+| `pwdnote config show` | Print the effective configuration. |
+| `pwdnote config init` | Create `config.toml` with defaults. |
+
+### Aliases
+
+Short built-in aliases are available for the most common commands:
+
+| Alias | Command |
+| --- | --- |
+| `pwdnote i` | `pwdnote init` |
+| `pwdnote e` | `pwdnote edit` |
+| `pwdnote a` | `pwdnote add` |
+| `pwdnote s` | `pwdnote status` |
+
+---
+
+## Configuration
+
+Configuration is optional. With no config file the defaults apply and behaviour
+is unchanged.
+
+The config file lives at `~/.config/pwdnote/config.toml` (honouring
+`XDG_CONFIG_HOME`). Run `pwdnote config init` to create it with the defaults:
+
+```toml
+[notes]
+initial_content = "# Project Notes\n"
+auto_gitignore_note_file = false
+
+[editor]
+command = ""
+
+[security]
+key_backend = "file"
+```
+
+- `notes.initial_content` — content used by `pwdnote init` for a new note.
+- `notes.auto_gitignore_note_file` — when `true`, `pwdnote init` adds
+  `.pwdnote.enc` to `.gitignore`.
+- `editor.command` — when set, overrides `$VISUAL` / `$EDITOR`.
+- `security.key_backend` — only `file` is supported today. Other values fail
+  with a clear error; advanced key backends may come later.
 
 ---
 
@@ -79,7 +122,7 @@ The file contains real project note data encrypted by pwdnote. It is included to
 
 The repository stores only ciphertext. Without the corresponding encryption key, the contents cannot be read.
 
-By default, `.pwdnote.enc` is designed to be commit-safe. If you prefer not to commit your project notes, you can manually add `.pwdnote.enc` to your `.gitignore` and Git will ignore the file.
+By default, `.pwdnote.enc` is designed to be commit-safe. If you prefer not to commit your project notes, you can manually add `.pwdnote.enc` to your `.gitignore` or use `pwdnote gitignore` to add it automatically.
 
 ---
 

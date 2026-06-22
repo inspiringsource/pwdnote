@@ -13,6 +13,12 @@ def test_resolve_editor_falls_back_to_editor(monkeypatch):
     assert editor.resolve_editor() == "myeditor"
 
 
+def test_resolve_editor_override_wins(monkeypatch):
+    monkeypatch.setenv("VISUAL", "myvisual")
+    monkeypatch.setenv("EDITOR", "myeditor")
+    assert editor.resolve_editor("configured") == "configured"
+
+
 def test_resolve_editor_default(monkeypatch):
     monkeypatch.delenv("VISUAL", raising=False)
     monkeypatch.delenv("EDITOR", raising=False)

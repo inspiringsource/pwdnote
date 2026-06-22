@@ -17,11 +17,14 @@ from pathlib import Path
 _FALLBACK_EDITORS = ("nano", "vi")
 
 
-def resolve_editor() -> str:
+def resolve_editor(override: str = "") -> str:
     """Resolve the editor command using the standard precedence.
 
-    Order: ``$VISUAL``, ``$EDITOR``, ``nano``, ``vi``.
+    Order: ``override`` (e.g. ``editor.command`` from config), ``$VISUAL``,
+    ``$EDITOR``, ``nano``, ``vi``.
     """
+    if override:
+        return override
     for env_var in ("VISUAL", "EDITOR"):
         value = os.environ.get(env_var)
         if value:
@@ -32,7 +35,7 @@ def resolve_editor() -> str:
     return _FALLBACK_EDITORS[-1]
 
 
-def edit_text(initial: str, directory: Path) -> str:
+def edit_text(initial: str, directory: Path, editor_command: str = "") -> str:
     """Open ``initial`` in an editor and return the edited result.
 
     A temporary file is created in ``directory`` with ``0600`` permissions and
@@ -44,7 +47,7 @@ def edit_text(initial: str, directory: Path) -> str:
         os.chmod(tmp_path, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(initial)
-        editor_cmd = shlex.split(resolve_editor())
+        editor_cmd = shlex.split(resolve_editor(editor_command))
         subprocess.run([*editor_cmd, str(tmp_path)], check=True)
         return tmp_path.read_text(encoding="utf-8")
     finally:
