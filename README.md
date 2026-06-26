@@ -18,6 +18,8 @@ commit; without your key it is just ciphertext.
 
 ![pwdnote demo](https://raw.githubusercontent.com/inspiringsource/pwdnote/main/demo/shortDemo.gif)
 
+A companion [VS Code extension](https://marketplace.visualstudio.com/items?itemName=inspiringsource.pwdnote-vscode) is also available.
+
 ---
 
 ## Installation
@@ -28,6 +30,25 @@ uv tool install pwdnote
 
 That's it — no further setup. The encryption key is generated automatically on
 first use.
+
+---
+
+## VS Code Extension
+
+The official **pwdnote** VS Code extension provides a graphical interface for
+the CLI. It lets you:
+
+- open project notes directly from VS Code
+- edit encrypted notes without leaving the editor
+- initialize new project notes
+- add quick notes
+- view project status
+
+The extension uses the `pwdnote` CLI for all encryption and decryption, so the
+same encrypted files work seamlessly from both the terminal and VS Code.
+
+- Marketplace: <https://marketplace.visualstudio.com/items?itemName=inspiringsource.pwdnote-vscode>
+- Source: <https://github.com/inspiringsource/pwdnote-vscode>
 
 ---
 
@@ -127,15 +148,16 @@ extension:
 
 These write machine-readable output to stdout and errors to stderr. Encryption
 is always handled by the CLI, so integrations never touch the key or the file
-format.
+format. These are the commands that power the official
+[VS Code extension](https://marketplace.visualstudio.com/items?itemName=inspiringsource.pwdnote-vscode).
 
 ---
 
 ## About the `.pwdnote.enc` file in this repository
 
-This repository intentionally includes a .pwdnote.enc file.
+This repository intentionally includes a `.pwdnote.enc` file.
 
-The file contains real project note data encrypted by pwdnote. It is included to demonstrate one of the core design goals of the tool: project notes can be stored alongside source code and committed to Git while remaining encrypted on disk.
+The file contains real project note data encrypted by `pwdnote`. It is included to demonstrate one of the core design goals of the tool: project notes can be stored alongside source code and committed to Git while remaining encrypted on disk.
 
 The repository stores only ciphertext. Without the corresponding encryption key, the contents cannot be read.
 
@@ -173,6 +195,9 @@ macOS Keychain, 1Password, `age`, or GPG key backends.
   same key (e.g. via a secrets manager).
 - One note per project root. `pwdnote` is intentionally simple — no databases,
   no cloud, no plugins, no AI features.
+- The VS Code extension is simply another frontend for the CLI. It shares the
+  same encryption key and note format, so it adds no separate storage or
+  security model.
 
 ---
 
