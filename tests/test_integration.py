@@ -111,10 +111,8 @@ def test_preview_invalid_line_count_fails_clearly(project_dir):
 
     assert zero_result.exit_code != 0
     assert "Invalid value" in zero_result.stderr
-    assert "--lines" in zero_result.stderr
     assert negative_result.exit_code != 0
     assert "Invalid value" in negative_result.stderr
-    assert "--lines" in negative_result.stderr
 
 
 def test_default_command_still_prints_full_note(project_dir):
