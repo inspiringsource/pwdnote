@@ -4,15 +4,19 @@
 
 **Encrypted, project-local notes for your terminal.**
 
-`pwdnote` keeps project-specific notes — TODOs, deployment notes, AWS account
-details, session IDs, customer context, reminders — encrypted on disk, right
-next to your code, without ever exposing plaintext inside the repository.
+`pwdnote` keeps encrypted project notes — deployment notes, reminders,
+troubleshooting notes, architecture notes, customer context, TODOs, session
+information, feature flags, and infrastructure reminders — on disk, right next
+to your code, without exposing plaintext inside the repository.
+
+It is intended for notes about systems and project work. It is not a password
+manager, and it is not a replacement for enterprise secrets-management systems.
 
 It is **local-first**, **encrypted-by-default**, **Git-friendly**, and
 **terminal-native**. The single encrypted file (`.pwdnote.enc`) is safe to
 commit; without your key it is just ciphertext.
 
-`pwdnote` started as a simple way to keep personal project notes close to my code, without worrying about accidentally committing secrets or overcomplicating the workflow.
+`pwdnote` started as a simple way to keep personal project notes close to my code, without worrying about accidentally committing plaintext notes or overcomplicating the workflow.
 
 ## Demo
 
@@ -59,7 +63,7 @@ cd my-project
 pwdnote init                                  # create .pwdnote.enc
 pwdnote edit                                  # open it in your editor
 pwdnote                                        # print the decrypted note
-pwdnote add "Remember to rotate AWS credentials" # appends a new line
+pwdnote add "Restart the worker after deployment" # appends a new line
 ```
 
 ---
@@ -130,6 +134,9 @@ Export the key for backup or another trusted device:
 ```bash
 pwdnote key export > pwdnote-key.backup
 ```
+
+Handle exported keys like passwords. Anyone with the exported key can decrypt
+the associated notes.
 
 Import the key on another trusted device:
 
@@ -225,6 +232,12 @@ By default, `.pwdnote.enc` is designed to be commit-safe. If you prefer not to c
 
 ## Security model
 
+`pwdnote` encrypts notes on disk. The encrypted `.pwdnote.enc` file is designed
+to be safely committed to Git, but anyone with both that file and the
+corresponding key can decrypt it. The primary goal is protecting project notes
+when repositories are shared or stored remotely; `pwdnote` is not designed to
+replace dedicated secrets-management tools.
+
 - **Authenticated encryption.** Notes are encrypted with
   [Fernet](https://cryptography.io/en/latest/fernet/) (AES-128-CBC with an
   HMAC-SHA256 authentication tag) from the well-maintained `cryptography`
@@ -243,6 +256,25 @@ The crypto backend lives behind a small abstraction (`encrypt_text` /
 `decrypt_text`), so it can be replaced later — and future versions may add
 macOS Keychain, 1Password, `age`, or GPG key backends.
 
+By default, `pwdnote` uses one local encryption key. Multiple projects have
+separate encrypted note files, but they share the same local key. This keeps
+the tool simple and makes backup straightforward; future releases may support
+additional key backends.
+
+---
+
+## FAQ
+
+### Can I commit `.pwdnote.enc`?
+
+Yes. `.pwdnote.enc` is designed to be committed because it contains encrypted
+data, not plaintext notes. Keep the corresponding key private.
+
+### Is pwdnote a password manager?
+
+No. `pwdnote` is intended for encrypted project notes, not for managing
+passwords or production secrets.
+
 ---
 
 ## Limitations
@@ -250,7 +282,7 @@ macOS Keychain, 1Password, `age`, or GPG key backends.
 - The key lives on your machine. If you lose `~/.config/pwdnote/key`, encrypted
   notes cannot be recovered. Back the key up somewhere safe.
 - There is no built-in sync. Sharing a note across machines means sharing the
-  same key (e.g. via a secrets manager).
+  same key through a trusted backup or transfer method.
 - One note per project root. `pwdnote` is intentionally simple — no databases,
   no cloud, no plugins, no AI features.
 - The VS Code extension is simply another frontend for the CLI. It shares the
