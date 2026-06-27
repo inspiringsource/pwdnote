@@ -22,6 +22,14 @@ def generate_key() -> bytes:
     return Fernet.generate_key()
 
 
+def validate_key(key: bytes) -> None:
+    """Validate that ``key`` is accepted by the current crypto backend."""
+    try:
+        Fernet(key)
+    except (ValueError, TypeError) as exc:
+        raise DecryptionError("Invalid encryption key.") from exc
+
+
 def _fernet(key: bytes) -> Fernet:
     try:
         return Fernet(key)

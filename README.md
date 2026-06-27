@@ -74,6 +74,9 @@ pwdnote add "Remember to rotate AWS credentials" # appends a new line
 | `pwdnote add "text"` | Append `- text` to the note without opening an editor. |
 | `pwdnote status` | Show the project root, note file, and encryption status. |
 | `pwdnote gitignore` | Add recommended ignore entries (`.pwdnote.tmp`, `.pwdnote.cache`). |
+| `pwdnote key path` | Print the key file path. |
+| `pwdnote key export` | Print the key to stdout for backup or transfer. |
+| `pwdnote key import` | Import a key from stdin. |
 | `pwdnote config path` | Print the config file path. |
 | `pwdnote config show` | Print the effective configuration. |
 | `pwdnote config init` | Create `config.toml` with defaults. |
@@ -88,6 +91,42 @@ Short built-in aliases are available for the most common commands:
 | `pwdnote e` | `pwdnote edit` |
 | `pwdnote a` | `pwdnote add` |
 | `pwdnote s` | `pwdnote status` |
+
+---
+
+## Key management
+
+The file key backend stores your encryption key at `~/.config/pwdnote/key`,
+honouring `XDG_CONFIG_HOME`. The key file is created with `0600` permissions
+inside a `0700` config directory.
+
+Show the current key path:
+
+```bash
+pwdnote key path
+```
+
+Export the key for backup or another trusted device:
+
+```bash
+pwdnote key export > pwdnote-key.backup
+```
+
+Import the key on another trusted device:
+
+```bash
+cat pwdnote-key.backup | pwdnote key import
+```
+
+Replace an existing key only when you intend to:
+
+```bash
+cat pwdnote-key.backup | pwdnote key import --force
+```
+
+Losing the key means losing access to encrypted notes. Anyone with the key can
+decrypt your notes, so store backups in a trusted password manager or another
+secure location.
 
 ---
 

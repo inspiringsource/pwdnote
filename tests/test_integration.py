@@ -1,4 +1,4 @@
-"""Tests for the editor/extension integration commands (pwdnote 0.3.0)."""
+"""Tests for the editor/extension integration commands (pwdnote 0.3.1)."""
 
 from pwdnote import __version__
 from pwdnote.cli import app
@@ -94,4 +94,4 @@ def test_version_flag(project_dir):
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert result.stdout.strip() == f"pwdnote {__version__}"
-    assert __version__ == "0.3.0"
+    assert __version__ == "0.3.1"

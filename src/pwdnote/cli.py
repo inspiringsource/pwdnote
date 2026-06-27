@@ -12,7 +12,15 @@ from rich.console import Console
 from . import __version__
 from . import editor as editor_mod
 from . import notes, project, settings
-from .config import load_or_create_key
+from .config import (
+    InvalidKeyError,
+    KeyExistsError,
+    KeyNotFoundError,
+    get_key_path,
+    import_key as import_key_file,
+    load_existing_key,
+    load_or_create_key,
+)
 from .crypto import DecryptionError
 
 app = typer.Typer(
@@ -24,6 +32,9 @@ app = typer.Typer(
 
 config_app = typer.Typer(help="Inspect and create the pwdnote config file.")
 app.add_typer(config_app, name="config")
+
+key_app = typer.Typer(help="Manage the pwdnote encryption key.")
+app.add_typer(key_app, name="key")
 
 console = Console()
 
@@ -247,6 +258,48 @@ def note_path() -> None:
         typer.echo(str(existing))
         return
     typer.echo(str(project.note_path_for(project.resolve_project_root(Path.cwd()))))
+
+
+@key_app.command("path")
+def key_path() -> None:
+    """Print the current key file path."""
+    typer.echo(str(get_key_path().expanduser().resolve()))
+
+
+@key_app.command("export")
+def key_export() -> None:
+    """Print the current key to stdout."""
+    try:
+        key = load_existing_key()
+    except KeyNotFoundError:
+        _err("Key does not exist.")
+    print(
+        "Warning: this exports your pwdnote encryption key. Anyone with this key can read your encrypted notes.",
+        file=sys.stderr,
+    )
+    sys.stdout.write(key.decode("ascii") + "\n")
+
+
+@key_app.command("import")
+def key_import(
+    force: bool = typer.Option(
+        False, "--force", help="Replace the current key if one already exists."
+    ),
+) -> None:
+    """Import a key from stdin."""
+    key = sys.stdin.read().encode("utf-8")
+    if force and get_key_path().exists():
+        print(
+            "Warning: replacing your key may make existing notes unreadable unless you kept a backup of the old key.",
+            file=sys.stderr,
+        )
+    try:
+        import_key_file(key, force=force)
+    except InvalidKeyError:
+        _err("Invalid key.")
+    except KeyExistsError:
+        _err("Key already exists. Use --force to replace it.")
+    console.print("Key imported.")
 
 
 @config_app.command("path")

@@ -1,6 +1,6 @@
 [project]
 name = "pwdnote"
-version = "0.3.0"
+version = "0.3.1"
 description = "Encrypted, project-local notes for your terminal."
 readme = "README.md"
 requires-python = ">=3.12"
