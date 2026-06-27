@@ -1,0 +1,16 @@
+{
+  "version": "0.3.1",
+  "title": "What’s new in v0.3.1",
+  "items": [
+    "New key management commands.",
+    "Export your encryption key for backups.",
+    "Import your key on another trusted device.",
+    "Show the current key path.",
+    "Improved documentation."
+  ],
+  "commands": [
+    "pwdnote key path",
+    "pwdnote key export",
+    "cat pwdnote-key.backup | pwdnote key import"
+  ]
+}
