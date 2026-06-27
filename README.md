@@ -72,6 +72,10 @@ pwdnote add "Remember to rotate AWS credentials" # appends a new line
 | `pwdnote init` | Create an encrypted note (`# Project Notes`). |
 | `pwdnote edit` | Decrypt, open in `$VISUAL`/`$EDITOR`, re-encrypt on save. |
 | `pwdnote add "text"` | Append `- text` to the note without opening an editor. |
+| `pwdnote head` | Print the first 10 lines of the decrypted note. |
+| `pwdnote head -n 5` | Print the first 5 lines of the decrypted note. |
+| `pwdnote tail` | Print the last 10 lines of the decrypted note. |
+| `pwdnote tail -n 5` | Print the last 5 lines of the decrypted note. |
 | `pwdnote status` | Show the project root, note file, and encryption status. |
 | `pwdnote gitignore` | Add recommended ignore entries (`.pwdnote.tmp`, `.pwdnote.cache`). |
 | `pwdnote key path` | Print the key file path. |
@@ -91,6 +95,21 @@ Short built-in aliases are available for the most common commands:
 | `pwdnote e` | `pwdnote edit` |
 | `pwdnote a` | `pwdnote add` |
 | `pwdnote s` | `pwdnote status` |
+
+---
+
+## Note previews
+
+Use `head` and `tail` to preview only part of a decrypted project note:
+
+```bash
+pwdnote head
+pwdnote head --lines 5
+pwdnote tail
+pwdnote tail -n 5
+```
+
+These commands print plaintext note content to stdout without extra formatting.
 
 ---
 

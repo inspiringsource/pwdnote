@@ -1,16 +1,14 @@
 {
-  "version": "0.3.1",
-  "title": "What’s new in v0.3.1",
+  "version": "0.3.2",
+  "title": "What’s new in v0.3.2",
   "items": [
-    "New key management commands.",
-    "Export your encryption key for backups.",
-    "Import your key on another trusted device.",
-    "Show the current key path.",
-    "Improved documentation."
+    "Added pwdnote head and pwdnote tail.",
+    "Preview the beginning or end of a project note.",
+    "Supports -n / --lines for custom line counts."
   ],
   "commands": [
-    "pwdnote key path",
-    "pwdnote key export",
-    "cat pwdnote-key.backup | pwdnote key import"
+    "pwdnote head",
+    "pwdnote head -n 5",
+    "pwdnote tail --lines 5"
   ]
 }

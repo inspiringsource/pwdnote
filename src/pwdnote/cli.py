@@ -96,6 +96,27 @@ def _read_existing() -> tuple[Path, bytes, str]:
     return note_path, key, text
 
 
+def _read_existing_plain() -> str:
+    """Read the current note for stdout-only commands."""
+    note_path = project.find_existing_note(Path.cwd())
+    if note_path is None:
+        _err("No project note found.")
+    key = load_or_create_key()
+    try:
+        return notes.read_note(note_path, key)
+    except DecryptionError:
+        _err("Unable to decrypt project note.")
+    except PermissionError:
+        _err("Unable to access note file.")
+
+
+def _preview_lines(text: str, lines: int, *, from_end: bool) -> str:
+    split = text.splitlines(keepends=True)
+    if from_end:
+        return "".join(split[-lines:])
+    return "".join(split[:lines])
+
+
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(f"pwdnote {__version__}")
@@ -206,17 +227,35 @@ def gitignore() -> None:
 @app.command()
 def read() -> None:
     """Decrypt and print the current project note to stdout (no formatting)."""
-    note_path = project.find_existing_note(Path.cwd())
-    if note_path is None:
-        _err("No project note found.")
-    key = load_or_create_key()
-    try:
-        text = notes.read_note(note_path, key)
-    except DecryptionError:
-        _err("Unable to decrypt project note.")
-    except PermissionError:
-        _err("Unable to access note file.")
-    sys.stdout.write(text)
+    sys.stdout.write(_read_existing_plain())
+
+
+@app.command()
+def head(
+    lines: int = typer.Option(
+        10,
+        "-n",
+        "--lines",
+        min=1,
+        help="Number of lines to print.",
+    ),
+) -> None:
+    """Print the first lines of the decrypted project note."""
+    sys.stdout.write(_preview_lines(_read_existing_plain(), lines, from_end=False))
+
+
+@app.command()
+def tail(
+    lines: int = typer.Option(
+        10,
+        "-n",
+        "--lines",
+        min=1,
+        help="Number of lines to print.",
+    ),
+) -> None:
+    """Print the last lines of the decrypted project note."""
+    sys.stdout.write(_preview_lines(_read_existing_plain(), lines, from_end=True))
 
 
 @app.command()
