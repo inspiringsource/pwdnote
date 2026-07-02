@@ -1,14 +1,14 @@
 {
-  "version": "0.3.2",
-  "title": "What’s new in v0.3.2",
+  "version": "0.3.3",
+  "title": "What’s new in v0.3.3",
   "items": [
-    "Added pwdnote head and pwdnote tail.",
-    "Preview the beginning or end of a project note.",
-    "Supports -n / --lines for custom line counts."
+    "Added readable Git history for encrypted notes.",
+    "Added pwdnote log, pwdnote show <rev>, and pwdnote diff.",
+    "Compare encrypted note changes locally as readable plaintext."
   ],
   "commands": [
-    "pwdnote head",
-    "pwdnote head -n 5",
-    "pwdnote tail --lines 5"
+    "pwdnote log",
+    "pwdnote show HEAD~1",
+    "pwdnote diff HEAD~1 HEAD"
   ]
 }

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import difflib
+import subprocess
 import sys
 from pathlib import Path
 from typing import NoReturn
@@ -21,7 +23,7 @@ from .config import (
     load_existing_key,
     load_or_create_key,
 )
-from .crypto import DecryptionError
+from .crypto import DecryptionError, decrypt_text
 
 app = typer.Typer(
     name="pwdnote",
@@ -115,6 +117,53 @@ def _preview_lines(text: str, lines: int, *, from_end: bool) -> str:
     if from_end:
         return "".join(split[-lines:])
     return "".join(split[:lines])
+
+
+def _run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run(
+            ["git", *args],
+            cwd=cwd,
+            check=False,
+            capture_output=True,
+            text=False,
+        )
+    except FileNotFoundError:
+        _err("git executable not found.")
+
+
+def _git_root() -> Path:
+    result = _run_git(["rev-parse", "--show-toplevel"], cwd=Path.cwd())
+    if result.returncode != 0:
+        _err("Not in a Git repository.")
+    return Path(result.stdout.decode("utf-8").strip())
+
+
+def _history_note_path(git_root: Path) -> tuple[Path, str]:
+    root = project.resolve_project_root(Path.cwd())
+    note_path = project.note_path_for(root)
+    try:
+        rel_path = note_path.resolve().relative_to(git_root.resolve()).as_posix()
+    except ValueError:
+        _err("Project note is not inside the current Git repository.")
+    return note_path, rel_path
+
+
+def _decrypt_note_bytes(token: bytes, *, source: str) -> str:
+    key = load_or_create_key()
+    try:
+        return decrypt_text(token, key)
+    except DecryptionError:
+        _err(
+            f"Unable to decrypt {source}. The current key may not match this note version."
+        )
+
+
+def _read_note_at_revision(rev: str, rel_path: str, git_root: Path) -> bytes:
+    result = _run_git(["show", f"{rev}:{rel_path}"], cwd=git_root)
+    if result.returncode != 0:
+        _err(f"Revision does not contain {project.NOTE_FILENAME}: {rev}")
+    return result.stdout
 
 
 def _version_callback(value: bool) -> None:
@@ -256,6 +305,73 @@ def tail(
 ) -> None:
     """Print the last lines of the decrypted project note."""
     sys.stdout.write(_preview_lines(_read_existing_plain(), lines, from_end=True))
+
+
+@app.command()
+def log() -> None:
+    """Show commits that changed the encrypted project note."""
+    git_root = _git_root()
+    _, rel_path = _history_note_path(git_root)
+    result = _run_git(
+        ["log", "--format=%h  %cs  %s", "--", rel_path],
+        cwd=git_root,
+    )
+    if result.returncode != 0:
+        _err("Unable to read Git history for project note.")
+    output = result.stdout.decode("utf-8")
+    if not output.strip():
+        _err(f"No Git history found for {project.NOTE_FILENAME}.")
+    sys.stdout.write(output)
+
+
+@app.command()
+def show(rev: str = typer.Argument(..., help="Git revision to read.")) -> None:
+    """Decrypt and print the project note at a Git revision."""
+    git_root = _git_root()
+    _, rel_path = _history_note_path(git_root)
+    token = _read_note_at_revision(rev, rel_path, git_root)
+    sys.stdout.write(_decrypt_note_bytes(token, source=f"{project.NOTE_FILENAME} at {rev}"))
+
+
+@app.command()
+def diff(
+    old: str | None = typer.Argument(None, help="Old Git revision."),
+    new: str | None = typer.Argument(None, help="New Git revision."),
+) -> None:
+    """Show a readable diff between decrypted note versions."""
+    git_root = _git_root()
+    note_path, rel_path = _history_note_path(git_root)
+    if old is None and new is None:
+        old_label = f"{project.NOTE_FILENAME} (HEAD)"
+        new_label = f"{project.NOTE_FILENAME} (working tree)"
+        old_text = _decrypt_note_bytes(
+            _read_note_at_revision("HEAD", rel_path, git_root), source=old_label
+        )
+        if not note_path.is_file():
+            _err("No project note found in the working tree.")
+        new_text = _decrypt_note_bytes(note_path.read_bytes(), source=new_label)
+    elif old is not None and new is not None:
+        old_label = f"{project.NOTE_FILENAME} ({old})"
+        new_label = f"{project.NOTE_FILENAME} ({new})"
+        old_text = _decrypt_note_bytes(
+            _read_note_at_revision(old, rel_path, git_root), source=old_label
+        )
+        new_text = _decrypt_note_bytes(
+            _read_note_at_revision(new, rel_path, git_root), source=new_label
+        )
+    else:
+        _err("diff requires both old and new revisions, or neither.")
+
+    sys.stdout.write(
+        "".join(
+            difflib.unified_diff(
+                old_text.splitlines(keepends=True),
+                new_text.splitlines(keepends=True),
+                fromfile=old_label,
+                tofile=new_label,
+            )
+        )
+    )
 
 
 @app.command()

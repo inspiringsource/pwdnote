@@ -1,4 +1,6 @@
-"""Tests for the editor/extension integration commands (pwdnote 0.3.2)."""
+"""Tests for the editor/extension integration commands (pwdnote 0.3.3)."""
+
+import subprocess
 
 from pwdnote import __version__
 from pwdnote.cli import app
@@ -10,6 +12,35 @@ runner = CliRunner()
 def _init_with(project_dir, content):
     """Create a note via write --create with known content."""
     result = runner.invoke(app, ["write", "--stdin", "--create"], input=content)
+    assert result.exit_code == 0
+    return result
+
+
+def _git(project_dir, *args):
+    return subprocess.run(
+        ["git", *args],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+    )
+
+
+def _init_git(project_dir):
+    _git(project_dir, "init")
+    _git(project_dir, "config", "user.name", "pwdnote tests")
+    _git(project_dir, "config", "user.email", "pwdnote-tests@example.invalid")
+
+
+def _commit_note(project_dir, message):
+    _git(project_dir, "add", ".pwdnote.enc")
+    _git(project_dir, "commit", "-m", message)
+
+
+def _write_with(project_dir, content, *, create=False):
+    args = ["write", "--stdin"]
+    if create:
+        args.append("--create")
+    result = runner.invoke(app, args, input=content)
     assert result.exit_code == 0
     return result
 
@@ -166,6 +197,100 @@ def test_write_create_creates_and_encrypts(project_dir):
     assert shown.stdout == content
 
 
+def test_log_lists_commits_that_changed_note(project_dir):
+    _init_git(project_dir)
+    _write_with(project_dir, "first note\n", create=True)
+    _commit_note(project_dir, "Add project note")
+    _write_with(project_dir, "second note\n")
+    _commit_note(project_dir, "Update project note")
+
+    result = runner.invoke(app, ["log"])
+
+    assert result.exit_code == 0
+    lines = result.stdout.strip().splitlines()
+    assert len(lines) == 2
+    assert "Update project note" in lines[0]
+    assert "Add project note" in lines[1]
+    assert all(len(line.split("  ")[0]) >= 7 for line in lines)
+
+
+def test_show_head_decrypts_committed_note(project_dir):
+    _init_git(project_dir)
+    _write_with(project_dir, "committed note\n", create=True)
+    _commit_note(project_dir, "Add note")
+
+    result = runner.invoke(app, ["show", "HEAD"])
+
+    assert result.exit_code == 0
+    assert result.stdout == "committed note\n"
+
+
+def test_show_old_revision_decrypts_older_note(project_dir):
+    _init_git(project_dir)
+    _write_with(project_dir, "older note\n", create=True)
+    _commit_note(project_dir, "Add note")
+    _write_with(project_dir, "newer note\n")
+    _commit_note(project_dir, "Update note")
+
+    result = runner.invoke(app, ["show", "HEAD~1"])
+
+    assert result.exit_code == 0
+    assert result.stdout == "older note\n"
+
+
+def test_diff_between_committed_versions_is_readable(project_dir):
+    _init_git(project_dir)
+    _write_with(project_dir, "line one\nold line\n", create=True)
+    _commit_note(project_dir, "Add note")
+    _write_with(project_dir, "line one\nnew line\n")
+    _commit_note(project_dir, "Update note")
+
+    result = runner.invoke(app, ["diff", "HEAD~1", "HEAD"])
+
+    assert result.exit_code == 0
+    assert "--- .pwdnote.enc (HEAD~1)" in result.stdout
+    assert "+++ .pwdnote.enc (HEAD)" in result.stdout
+    assert "-old line\n" in result.stdout
+    assert "+new line\n" in result.stdout
+    assert ".pwdnote.enc" in result.stdout
+
+
+def test_diff_compares_head_with_working_tree(project_dir):
+    _init_git(project_dir)
+    _write_with(project_dir, "line one\ncommitted line\n", create=True)
+    _commit_note(project_dir, "Add note")
+    _write_with(project_dir, "line one\nworking tree line\n")
+
+    result = runner.invoke(app, ["diff"])
+
+    assert result.exit_code == 0
+    assert "--- .pwdnote.enc (HEAD)" in result.stdout
+    assert "+++ .pwdnote.enc (working tree)" in result.stdout
+    assert "-committed line\n" in result.stdout
+    assert "+working tree line\n" in result.stdout
+
+
+def test_history_commands_fail_helpfully_outside_git(project_dir):
+    _write_with(project_dir, "note without git\n", create=True)
+
+    result = runner.invoke(app, ["log"])
+
+    assert result.exit_code != 0
+    assert "Not in a Git repository." in result.stderr
+
+
+def test_show_fails_helpfully_when_revision_lacks_note(project_dir):
+    _init_git(project_dir)
+    (project_dir / "README.md").write_text("hello\n", encoding="utf-8")
+    _git(project_dir, "add", "README.md")
+    _git(project_dir, "commit", "-m", "Add readme")
+
+    result = runner.invoke(app, ["show", "HEAD"])
+
+    assert result.exit_code != 0
+    assert "Revision does not contain .pwdnote.enc" in result.stderr
+
+
 def test_root_prints_project_root(project_dir):
     result = runner.invoke(app, ["root"])
     assert result.exit_code == 0
@@ -189,4 +314,4 @@ def test_version_flag(project_dir):
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert result.stdout.strip() == f"pwdnote {__version__}"
-    assert __version__ == "0.3.2"
+    assert __version__ == "0.3.3"

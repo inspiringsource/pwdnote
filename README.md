@@ -80,6 +80,10 @@ pwdnote add "Restart the worker after deployment" # appends a new line
 | `pwdnote head -n 5` | Print the first 5 lines of the decrypted note. |
 | `pwdnote tail` | Print the last 10 lines of the decrypted note. |
 | `pwdnote tail -n 5` | Print the last 5 lines of the decrypted note. |
+| `pwdnote log` | Show commits where `.pwdnote.enc` changed. |
+| `pwdnote show HEAD~1` | Decrypt and print the note from a Git revision. |
+| `pwdnote diff HEAD~1 HEAD` | Show a readable diff between two encrypted note revisions. |
+| `pwdnote diff` | Compare the committed note with the working tree note. |
 | `pwdnote status` | Show the project root, note file, and encryption status. |
 | `pwdnote gitignore` | Add recommended ignore entries (`.pwdnote.tmp`, `.pwdnote.cache`). |
 | `pwdnote key path` | Print the key file path. |
@@ -114,6 +118,24 @@ pwdnote tail -n 5
 ```
 
 These commands print plaintext note content to stdout without extra formatting.
+
+---
+
+## Readable Git history
+
+GitHub and normal Git diffs show `.pwdnote.enc` as ciphertext. Because
+`pwdnote` has access to your local key, it can decrypt historical versions
+locally and show readable history without writing plaintext to disk.
+
+```bash
+pwdnote log
+pwdnote show HEAD~1
+pwdnote diff HEAD~1 HEAD
+pwdnote diff
+```
+
+`pwdnote diff` compares the `HEAD` version of `.pwdnote.enc` with the working
+tree version. `pwdnote diff HEAD~1 HEAD` compares two committed versions.
 
 ---
 
