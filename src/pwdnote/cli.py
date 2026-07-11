@@ -23,7 +23,7 @@ from .config import (
     load_existing_key,
     load_or_create_key,
 )
-from .crypto import DecryptionError, decrypt_text
+from .crypto import BACKEND_NAME, DecryptionError, decrypt_text
 
 app = typer.Typer(
     name="pwdnote",
@@ -119,7 +119,9 @@ def _preview_lines(text: str, lines: int, *, from_end: bool) -> str:
     return "".join(split[:lines])
 
 
-def _run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess:
+def _try_run_git(
+    args: list[str], *, cwd: Path
+) -> subprocess.CompletedProcess[bytes] | None:
     try:
         return subprocess.run(
             ["git", *args],
@@ -129,7 +131,51 @@ def _run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess:
             text=False,
         )
     except FileNotFoundError:
+        return None
+
+
+def _run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[bytes]:
+    result = _try_run_git(args, cwd=cwd)
+    if result is None:
         _err("git executable not found.")
+    return result
+
+
+def _note_history_stats(note_path: Path) -> tuple[int, str | None, str | None]:
+    """Return revision count and boundary dates, tolerating unavailable Git."""
+    root_result = _try_run_git(
+        ["rev-parse", "--show-toplevel"], cwd=note_path.parent
+    )
+    if root_result is None or root_result.returncode != 0:
+        return 0, None, None
+
+    git_root = Path(root_result.stdout.decode("utf-8").strip())
+    try:
+        rel_path = note_path.resolve().relative_to(git_root.resolve()).as_posix()
+    except ValueError:
+        return 0, None, None
+
+    log_result = _try_run_git(
+        ["log", "--format=%cs", "--", rel_path], cwd=git_root
+    )
+    if log_result is None or log_result.returncode != 0:
+        return 0, None, None
+
+    dates = log_result.stdout.decode("utf-8").splitlines()
+    if not dates:
+        return 0, None, None
+    return len(dates), dates[-1], dates[0]
+
+
+def _format_file_size(size: int) -> str:
+    if size < 1024:
+        return f"{size} B"
+    value = float(size)
+    for unit in ("KB", "MB", "GB"):
+        value /= 1024
+        if value < 1024 or unit == "GB":
+            return f"{value:.1f} {unit}"
+    raise AssertionError("unreachable")
 
 
 def _git_root() -> Path:
@@ -253,6 +299,33 @@ def status() -> None:
     console.print(f"  {note_path.name}")
     console.print("Encrypted:")
     console.print("  Yes")
+
+
+@app.command()
+def stats() -> None:
+    """Summarize the current note and its Git history."""
+    note_path, _, text = _read_existing()
+    config = _load_config()
+    revisions, first_commit, latest_commit = _note_history_stats(note_path)
+
+    console.print("Project")
+    console.print(f"  Root: {note_path.parent}", soft_wrap=True)
+    console.print(f"  Note: {note_path}", soft_wrap=True)
+    console.print()
+    console.print("Content")
+    console.print(f"  Lines: {len(text.splitlines())}")
+    console.print(f"  Words: {len(text.split())}")
+    console.print(f"  Characters: {len(text)}")
+    console.print(f"  Encrypted size: {_format_file_size(note_path.stat().st_size)}")
+    console.print()
+    console.print("Security")
+    console.print(f"  Encryption backend: {BACKEND_NAME}")
+    console.print(f"  Key backend: {config['security']['key_backend']}")
+    console.print()
+    console.print("History")
+    console.print(f"  Revisions: {revisions}")
+    console.print(f"  First commit: {first_commit or 'Unavailable'}")
+    console.print(f"  Latest commit: {latest_commit or 'Unavailable'}")
 
 
 @app.command()

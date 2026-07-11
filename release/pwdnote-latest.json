@@ -1,14 +1,12 @@
 {
-  "version": "0.3.3",
-  "title": "What’s new in v0.3.3",
+  "version": "0.3.4",
+  "title": "What’s new in v0.3.4",
   "items": [
-    "Added readable Git history for encrypted notes.",
-    "Added pwdnote log, pwdnote show <rev>, and pwdnote diff.",
-    "Compare encrypted note changes locally as readable plaintext."
+    "Added pwdnote stats.",
+    "Shows note size, line/word/character counts, key and encryption backends.",
+    "Includes readable Git history statistics when available."
   ],
   "commands": [
-    "pwdnote log",
-    "pwdnote show HEAD~1",
-    "pwdnote diff HEAD~1 HEAD"
+    "pwdnote stats"
   ]
 }

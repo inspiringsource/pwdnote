@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from cryptography.fernet import Fernet, InvalidToken
 
+BACKEND_NAME = "Fernet"
+
 
 class DecryptionError(Exception):
     """Raised when a note cannot be decrypted (wrong key or corrupted data)."""

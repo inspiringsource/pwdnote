@@ -85,6 +85,7 @@ pwdnote add "Restart the worker after deployment" # appends a new line
 | `pwdnote diff HEAD~1 HEAD` | Show a readable diff between two encrypted note revisions. |
 | `pwdnote diff` | Compare the committed note with the working tree note. |
 | `pwdnote status` | Show the project root, note file, and encryption status. |
+| `pwdnote stats` | Summarize note content, storage, security, and Git history. |
 | `pwdnote gitignore` | Add recommended ignore entries (`.pwdnote.tmp`, `.pwdnote.cache`). |
 | `pwdnote key path` | Print the key file path. |
 | `pwdnote key export` | Print the key to stdout for backup or transfer. |
@@ -118,6 +119,19 @@ pwdnote tail -n 5
 ```
 
 These commands print plaintext note content to stdout without extra formatting.
+
+---
+
+## Note statistics
+
+`pwdnote stats` reports the project and note paths, plaintext line, word, and
+character counts, encrypted file size, and the active encryption and key
+backends. It also includes the revision count and first/latest commit dates for
+`.pwdnote.enc` when Git history is available.
+
+```bash
+pwdnote stats
+```
 
 ---
 
