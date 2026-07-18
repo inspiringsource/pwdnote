@@ -6,11 +6,13 @@ written to disk.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from .crypto import decrypt_text, encrypt_text
 
 INITIAL_CONTENT = "# Project Notes\n"
+MARKDOWN_LIST_ITEM_RE = re.compile(r"^-\s+(.+)$")
 
 
 class NoteNotFoundError(Exception):
@@ -19,6 +21,31 @@ class NoteNotFoundError(Exception):
 
 class NoteExistsError(Exception):
     """Raised when initializing a note that already exists."""
+
+
+class InvalidItemSelectorError(ValueError):
+    """Raised when a list item selector is not supported."""
+
+
+def extract_markdown_list_items(note: str) -> list[str]:
+    """Return top-level, single-line Markdown dash list items."""
+    items: list[str] = []
+    for line in note.splitlines():
+        match = MARKDOWN_LIST_ITEM_RE.fullmatch(line)
+        if match is not None:
+            items.append(match.group(1))
+    return items
+
+
+def parse_item_selector(value: str) -> int:
+    """Convert a public 1-based selector to a zero-based item index."""
+    if value in {"one", "first"}:
+        return 0
+    if value.isascii() and value.isdecimal():
+        number = int(value)
+        if number > 0:
+            return number - 1
+    raise InvalidItemSelectorError(value)
 
 
 def note_exists(path: Path) -> bool:

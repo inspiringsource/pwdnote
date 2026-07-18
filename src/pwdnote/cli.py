@@ -380,6 +380,34 @@ def tail(
     sys.stdout.write(_preview_lines(_read_existing_plain(), lines, from_end=True))
 
 
+@app.command(context_settings={"ignore_unknown_options": True})
+def paste(
+    item: str = typer.Argument(
+        ...,
+        help="1-based item number; 'one' and 'first' select the first item.",
+    ),
+) -> None:
+    """Print one Markdown list item without its list marker."""
+    try:
+        index = notes.parse_item_selector(item)
+    except notes.InvalidItemSelectorError:
+        _err(
+            f"Error: invalid item selector '{item}'. "
+            "Use a positive number, 'one', or 'first'."
+        )
+
+    items = notes.extract_markdown_list_items(_read_existing_plain())
+    if not items:
+        _err("Error: the project note contains no Markdown list items.")
+    if index >= len(items):
+        noun = "item" if len(items) == 1 else "items"
+        _err(
+            f"Error: item {index + 1} does not exist. "
+            f"The note contains {len(items)} list {noun}."
+        )
+    sys.stdout.write(items[index] + "\n")
+
+
 @app.command()
 def log() -> None:
     """Show commits that changed the encrypted project note."""

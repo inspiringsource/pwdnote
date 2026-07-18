@@ -80,6 +80,7 @@ pwdnote add "Restart the worker after deployment" # appends a new line
 | `pwdnote head -n 5` | Print the first 5 lines of the decrypted note. |
 | `pwdnote tail` | Print the last 10 lines of the decrypted note. |
 | `pwdnote tail -n 5` | Print the last 5 lines of the decrypted note. |
+| `pwdnote paste 1` | Print the first Markdown list item without its `- ` marker. |
 | `pwdnote log` | Show commits where `.pwdnote.enc` changed. |
 | `pwdnote show HEAD~1` | Decrypt and print the note from a Git revision. |
 | `pwdnote diff HEAD~1 HEAD` | Show a readable diff between two encrypted note revisions. |
@@ -119,6 +120,33 @@ pwdnote tail -n 5
 ```
 
 These commands print plaintext note content to stdout without extra formatting.
+
+---
+
+## Retrieve individual list items
+
+Notes added with `pwdnote add` are stored as Markdown list items. Retrieve one
+item without opening the complete note:
+
+```bash
+pwdnote paste 1
+pwdnote paste one
+pwdnote paste first
+```
+
+Given:
+
+```markdown
+- uv run pytest
+```
+
+the command prints:
+
+```text
+uv run pytest
+```
+
+Numbering is 1-based. The content is printed to stdout and is not executed.
 
 ---
 

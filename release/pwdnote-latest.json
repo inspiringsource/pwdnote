@@ -1,12 +1,13 @@
 {
-  "version": "0.3.4",
-  "title": "What’s new in v0.3.4",
+  "version": "0.3.5",
+  "title": "What’s new in v0.3.5",
   "items": [
-    "Added pwdnote stats.",
-    "Shows note size, line/word/character counts, key and encryption backends.",
-    "Includes readable Git history statistics when available."
+    "Added pwdnote paste <item>.",
+    "Retrieve individual Markdown list items by number.",
+    "Supports one and first as aliases for the first item."
   ],
   "commands": [
-    "pwdnote stats"
+    "pwdnote paste 1",
+    "pwdnote paste one"
   ]
 }
