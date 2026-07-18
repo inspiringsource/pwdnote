@@ -1,13 +1,13 @@
 {
-  "version": "0.3.5",
-  "title": "What’s new in v0.3.5",
+  "version": "0.3.6",
+  "title": "What’s new in v0.3.6",
   "items": [
-    "Added pwdnote paste <item>.",
-    "Retrieve individual Markdown list items by number.",
-    "Supports one and first as aliases for the first item."
+    "Added pwdnote cat <item> for terminal previews.",
+    "pwdnote paste <item> now copies to the system clipboard.",
+    "List items are never executed or written as plaintext to disk."
   ],
   "commands": [
-    "pwdnote paste 1",
+    "pwdnote cat 1",
     "pwdnote paste one"
   ]
 }

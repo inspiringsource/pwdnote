@@ -27,6 +27,19 @@ class InvalidItemSelectorError(ValueError):
     """Raised when a list item selector is not supported."""
 
 
+class NoMarkdownListItemsError(LookupError):
+    """Raised when a note has no selectable top-level list items."""
+
+
+class MarkdownListItemNotFoundError(LookupError):
+    """Raised when a selector points beyond the available list items."""
+
+    def __init__(self, item_number: int, item_count: int) -> None:
+        self.item_number = item_number
+        self.item_count = item_count
+        super().__init__(item_number, item_count)
+
+
 def extract_markdown_list_items(note: str) -> list[str]:
     """Return top-level, single-line Markdown dash list items."""
     items: list[str] = []
@@ -46,6 +59,17 @@ def parse_item_selector(value: str) -> int:
         if number > 0:
             return number - 1
     raise InvalidItemSelectorError(value)
+
+
+def get_markdown_list_item(note: str, selector: str) -> tuple[int, str]:
+    """Resolve ``selector`` and return its zero-based index and exact content."""
+    index = parse_item_selector(selector)
+    items = extract_markdown_list_items(note)
+    if not items:
+        raise NoMarkdownListItemsError
+    if index >= len(items):
+        raise MarkdownListItemNotFoundError(index + 1, len(items))
+    return index, items[index]
 
 
 def note_exists(path: Path) -> bool:

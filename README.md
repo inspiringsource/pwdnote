@@ -80,7 +80,8 @@ pwdnote add "Restart the worker after deployment" # appends a new line
 | `pwdnote head -n 5` | Print the first 5 lines of the decrypted note. |
 | `pwdnote tail` | Print the last 10 lines of the decrypted note. |
 | `pwdnote tail -n 5` | Print the last 5 lines of the decrypted note. |
-| `pwdnote paste 1` | Print the first Markdown list item without its `- ` marker. |
+| `pwdnote cat 1` | Print the first Markdown list item without its `- ` marker. |
+| `pwdnote paste 1` | Copy the first Markdown list item to the system clipboard. |
 | `pwdnote log` | Show commits where `.pwdnote.enc` changed. |
 | `pwdnote show HEAD~1` | Decrypt and print the note from a Git revision. |
 | `pwdnote diff HEAD~1 HEAD` | Show a readable diff between two encrypted note revisions. |
@@ -125,13 +126,25 @@ These commands print plaintext note content to stdout without extra formatting.
 
 ## Retrieve individual list items
 
-Notes added with `pwdnote add` are stored as Markdown list items. Retrieve one
-item without opening the complete note:
+Notes added with `pwdnote add` are stored as Markdown list items.
+
+Preview an item in the terminal:
+
+```bash
+pwdnote cat 1
+```
+
+Copy an item to the system clipboard:
 
 ```bash
 pwdnote paste 1
+```
+
+The selectors `one` and `first` can also be used for the first item:
+
+```bash
+pwdnote cat first
 pwdnote paste one
-pwdnote paste first
 ```
 
 Given:
@@ -140,13 +153,15 @@ Given:
 - uv run pytest
 ```
 
-the command prints:
+`pwdnote cat 1` prints:
 
 ```text
 uv run pytest
 ```
 
-Numbering is 1-based. The content is printed to stdout and is not executed.
+`pwdnote paste 1` copies `uv run pytest` to the clipboard so it can be pasted
+normally with the operating system's paste shortcut. Numbering is 1-based.
+Neither command executes the stored content.
 
 ---
 

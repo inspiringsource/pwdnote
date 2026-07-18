@@ -13,7 +13,7 @@ from rich.console import Console
 
 from . import __version__
 from . import editor as editor_mod
-from . import notes, project, settings
+from . import clipboard, notes, project, settings
 from .config import (
     InvalidKeyError,
     KeyExistsError,
@@ -117,6 +117,25 @@ def _preview_lines(text: str, lines: int, *, from_end: bool) -> str:
     if from_end:
         return "".join(split[-lines:])
     return "".join(split[:lines])
+
+
+def _resolve_markdown_list_item(selector: str) -> tuple[int, str]:
+    note = _read_existing_plain()
+    try:
+        return notes.get_markdown_list_item(note, selector)
+    except notes.InvalidItemSelectorError:
+        _err(
+            f"Error: invalid item selector '{selector}'. "
+            "Use a positive number, 'one', or 'first'."
+        )
+    except notes.NoMarkdownListItemsError:
+        _err("Error: the project note contains no Markdown list items.")
+    except notes.MarkdownListItemNotFoundError as exc:
+        noun = "item" if exc.item_count == 1 else "items"
+        _err(
+            f"Error: item {exc.item_number} does not exist. "
+            f"The note contains {exc.item_count} list {noun}."
+        )
 
 
 def _try_run_git(
@@ -381,31 +400,39 @@ def tail(
 
 
 @app.command(context_settings={"ignore_unknown_options": True})
+def cat(
+    item: str = typer.Argument(
+        ...,
+        help="1-based item number; 'one' and 'first' select the first item.",
+    ),
+) -> None:
+    """Print one Markdown list item without its list marker.
+
+    The stored content is printed to stdout and is not executed.
+    """
+    _, selected = _resolve_markdown_list_item(item)
+    sys.stdout.write(selected + "\n")
+
+
+@app.command(context_settings={"ignore_unknown_options": True})
 def paste(
     item: str = typer.Argument(
         ...,
         help="1-based item number; 'one' and 'first' select the first item.",
     ),
 ) -> None:
-    """Print one Markdown list item without its list marker."""
-    try:
-        index = notes.parse_item_selector(item)
-    except notes.InvalidItemSelectorError:
-        _err(
-            f"Error: invalid item selector '{item}'. "
-            "Use a positive number, 'one', or 'first'."
-        )
+    """Copy one Markdown list item to the system clipboard.
 
-    items = notes.extract_markdown_list_items(_read_existing_plain())
-    if not items:
-        _err("Error: the project note contains no Markdown list items.")
-    if index >= len(items):
-        noun = "item" if len(items) == 1 else "items"
-        _err(
-            f"Error: item {index + 1} does not exist. "
-            f"The note contains {len(items)} list {noun}."
-        )
-    sys.stdout.write(items[index] + "\n")
+    The stored content is copied without a newline and is not executed.
+    """
+    index, selected = _resolve_markdown_list_item(item)
+    try:
+        clipboard.copy_to_clipboard(selected)
+    except clipboard.ClipboardUnavailableError as exc:
+        _err(f"Error: {exc}")
+    except clipboard.ClipboardError:
+        _err(f"Error: could not copy item {index + 1} to the clipboard.")
+    print(f"Copied item {index + 1} to the clipboard.", file=sys.stderr)
 
 
 @app.command()
