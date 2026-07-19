@@ -1,13 +1,15 @@
 {
-  "version": "0.3.6",
-  "title": "What’s new in v0.3.6",
+  "version": "0.3.7",
+  "title": "What’s new in v0.3.7",
   "items": [
-    "Added pwdnote cat <item> for terminal previews.",
-    "pwdnote paste <item> now copies to the system clipboard.",
-    "List items are never executed or written as plaintext to disk."
+    "Added pwdnote copy <item> for clipboard copying.",
+    "pwdnote paste <item> now inserts into the next Zsh prompt.",
+    "Added optional Zsh integration management and short aliases."
   ],
   "commands": [
-    "pwdnote cat 1",
-    "pwdnote paste one"
+    "pwdnote cat 2",
+    "pwdnote copy 2",
+    "pwdnote shell install",
+    "pwdnote paste 2"
   ]
 }

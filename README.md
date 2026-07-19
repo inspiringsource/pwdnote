@@ -81,7 +81,9 @@ pwdnote add "Restart the worker after deployment" # appends a new line
 | `pwdnote tail` | Print the last 10 lines of the decrypted note. |
 | `pwdnote tail -n 5` | Print the last 5 lines of the decrypted note. |
 | `pwdnote cat 1` | Print the first Markdown list item without its `- ` marker. |
-| `pwdnote paste 1` | Copy the first Markdown list item to the system clipboard. |
+| `pwdnote copy 1` | Copy the first Markdown list item to the system clipboard. |
+| `pwdnote paste 1` | Insert the first Markdown list item into the Zsh command line. |
+| `pwdnote shell install` | Install the optional Zsh integration used by `paste`. |
 | `pwdnote log` | Show commits where `.pwdnote.enc` changed. |
 | `pwdnote show HEAD~1` | Decrypt and print the note from a Git revision. |
 | `pwdnote diff HEAD~1 HEAD` | Show a readable diff between two encrypted note revisions. |
@@ -106,6 +108,9 @@ Short built-in aliases are available for the most common commands:
 | `pwdnote e` | `pwdnote edit` |
 | `pwdnote a` | `pwdnote add` |
 | `pwdnote s` | `pwdnote status` |
+| `pwdnote c` | `pwdnote cat` |
+| `pwdnote y` | `pwdnote copy` |
+| `pwdnote p` | `pwdnote paste` |
 
 ---
 
@@ -124,44 +129,58 @@ These commands print plaintext note content to stdout without extra formatting.
 
 ---
 
-## Retrieve individual list items
+## Reuse individual list items
 
 Notes added with `pwdnote add` are stored as Markdown list items.
 
-Preview an item in the terminal:
+Preview an item:
 
 ```bash
-pwdnote cat 1
+pwdnote cat 2
 ```
 
-Copy an item to the system clipboard:
+Copy it to the system clipboard:
 
 ```bash
-pwdnote paste 1
+pwdnote copy 2
 ```
 
-The selectors `one` and `first` can also be used for the first item:
+Install the optional Zsh integration and insert it into the next Zsh prompt:
 
 ```bash
-pwdnote cat first
-pwdnote paste one
+pwdnote shell install
+source ~/.zshrc
+pwdnote paste 2
 ```
 
-Given:
+After `pwdnote paste 2`, the selected text appears in the next Zsh command line.
+It is ready for review or editing and is not executed automatically.
 
-```markdown
-- uv run pytest
+Short aliases are also available:
+
+```bash
+pwdnote c 2
+pwdnote y 2
+pwdnote p 2
 ```
 
-`pwdnote cat 1` prints:
+Numbering is 1-based; `one` and `first` select the first item. Direct insertion
+currently supports Zsh. Clipboard copying remains cross-platform, and the shell
+integration is optional: `cat` and `copy` work without it. None of these
+commands execute the stored content.
 
-```text
-uv run pytest
+`pwdnote shell install` writes the generated integration to
+`~/.config/pwdnote/shell/pwdnote.zsh` (honouring `XDG_CONFIG_HOME`) and adds one
+managed source block to `~/.zshrc`. Inspect or remove it with:
+
+```bash
+pwdnote shell status
+pwdnote shell print
+pwdnote shell uninstall
 ```
 
-`pwdnote paste 1` copies `uv run pytest` to the clipboard so it can be pasted
-normally with the operating system's paste shortcut. Numbering is 1-based.
-Neither command executes the stored content.
+`shell status` exits with status 1 when either installation piece is missing or
+out of date.
 
 ---
 

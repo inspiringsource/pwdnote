@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import difflib
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -13,7 +14,7 @@ from rich.console import Console
 
 from . import __version__
 from . import editor as editor_mod
-from . import clipboard, notes, project, settings
+from . import clipboard, notes, project, settings, shell_integration
 from .config import (
     InvalidKeyError,
     KeyExistsError,
@@ -37,6 +38,9 @@ app.add_typer(config_app, name="config")
 
 key_app = typer.Typer(help="Manage the pwdnote encryption key.")
 app.add_typer(key_app, name="key")
+
+shell_app = typer.Typer(help="Manage the optional Zsh integration.")
+app.add_typer(shell_app, name="shell")
 
 console = Console()
 
@@ -415,7 +419,7 @@ def cat(
 
 
 @app.command(context_settings={"ignore_unknown_options": True})
-def paste(
+def copy(
     item: str = typer.Argument(
         ...,
         help="1-based item number; 'one' and 'first' select the first item.",
@@ -433,6 +437,23 @@ def paste(
     except clipboard.ClipboardError:
         _err(f"Error: could not copy item {index + 1} to the clipboard.")
     print(f"Copied item {index + 1} to the clipboard.", file=sys.stderr)
+
+
+@app.command(context_settings={"ignore_unknown_options": True})
+def paste(
+    item: str = typer.Argument(
+        ...,
+        help="1-based item number; 'one' and 'first' select the first item.",
+    ),
+) -> None:
+    """Insert one Markdown list item into the Zsh command line.
+
+    Requires the optional Zsh integration and never executes the stored content.
+    """
+    _err(
+        "Error: direct paste requires the pwdnote Zsh integration. "
+        "Run 'pwdnote shell install'."
+    )
 
 
 @app.command()
@@ -608,11 +629,75 @@ def config_init() -> None:
         console.print(f"Config already exists at {path}")
 
 
+@shell_app.command("print")
+def shell_print() -> None:
+    """Print the pwdnote Zsh integration script."""
+    sys.stdout.write(shell_integration.render_zsh_integration())
+
+
+@shell_app.command("install")
+def shell_install() -> None:
+    """Install or update the optional Zsh integration."""
+    current_shell = os.environ.get("SHELL")
+    if current_shell and Path(current_shell).name != "zsh":
+        print(
+            "Warning: installing Zsh integration while the current shell is not Zsh.",
+            file=sys.stderr,
+        )
+    try:
+        _, zshrc_path = shell_integration.install()
+    except OSError:
+        _err("Error: unable to install the pwdnote Zsh integration.")
+    console.print("Installed pwdnote Zsh integration.")
+    console.print(f"Restart Zsh or run: source {zshrc_path}")
+
+
+@shell_app.command("status")
+def shell_status() -> None:
+    """Check whether the Zsh integration is completely installed."""
+    if shell_integration.is_installed():
+        console.print("pwdnote Zsh integration is installed.")
+        return
+    _err(
+        "pwdnote Zsh integration is not installed.\n"
+        "Run 'pwdnote shell install'."
+    )
+
+
+@shell_app.command("uninstall")
+def shell_uninstall() -> None:
+    """Remove only the pwdnote-managed Zsh integration."""
+    try:
+        changed, zshrc_path = shell_integration.uninstall()
+    except OSError:
+        _err("Error: unable to remove the pwdnote Zsh integration.")
+    if not changed:
+        console.print("pwdnote Zsh integration was not installed.")
+        return
+    console.print("Removed pwdnote Zsh integration.")
+    console.print(f"Restart Zsh or run: source {zshrc_path}")
+
+
 # Built-in command aliases. Not user-configurable.
-app.command(name="i", hidden=True)(init)
-app.command(name="e", hidden=True)(edit)
-app.command(name="a", hidden=True)(add)
-app.command(name="s", hidden=True)(status)
+app.command(name="i", help="Alias for init.")(init)
+app.command(name="e", help="Alias for edit.")(edit)
+app.command(name="a", help="Alias for add.")(add)
+app.command(name="s", help="Alias for status.")(status)
+app.command(
+    name="c",
+    help="Alias for cat.",
+    context_settings={"ignore_unknown_options": True},
+)(cat)
+app.command(
+    name="y",
+    help="Alias for copy.",
+    context_settings={"ignore_unknown_options": True},
+)(copy)
+app.command(
+    name="p",
+    help="Alias for paste.",
+    context_settings={"ignore_unknown_options": True},
+)(paste)
 
 
 if __name__ == "__main__":  # pragma: no cover
