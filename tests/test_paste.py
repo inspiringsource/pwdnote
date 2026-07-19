@@ -258,9 +258,12 @@ def test_python_paste_fallback_requires_zsh_integration(
     assert result.exit_code != 0
     assert result.stdout == ""
     assert result.stderr == (
-        "Error: direct paste requires the pwdnote Zsh integration. "
-        "Run 'pwdnote shell install'.\n"
+        "Error: direct paste requires the pwdnote Zsh integration.\n"
+        "It works on macOS and Linux systems running Zsh.\n"
+        "Run 'pwdnote shell install zsh'.\n"
+        "Other shells can use 'pwdnote cat' or 'pwdnote copy'.\n"
     )
+    assert "Bash support" not in result.stderr
     assert selected not in result.stderr
     assert not marker.exists()
 
@@ -270,7 +273,7 @@ def test_python_paste_fallback_requires_zsh_integration(
     [
         ("cat", "printed to stdout"),
         ("copy", "copied without a newline"),
-        ("paste", "Requires the optional Zsh integration"),
+        ("paste", "Direct insertion requires Zsh on macOS or Linux"),
     ],
 )
 def test_item_command_help_describes_selectors_action_and_no_execution(
@@ -283,7 +286,7 @@ def test_item_command_help_describes_selectors_action_and_no_execution(
     assert "one" in result.stdout
     assert "first" in result.stdout
     assert action in result.stdout
-    assert "not executed" in result.stdout or "never executes" in result.stdout
+    assert "not executed" in result.stdout or "never executed" in result.stdout
 
 
 def test_main_help_lists_commands_and_visible_aliases():

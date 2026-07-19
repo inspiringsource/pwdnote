@@ -83,7 +83,8 @@ pwdnote add "Restart the worker after deployment" # appends a new line
 | `pwdnote cat 1` | Print the first Markdown list item without its `- ` marker. |
 | `pwdnote copy 1` | Copy the first Markdown list item to the system clipboard. |
 | `pwdnote paste 1` | Insert the first Markdown list item into the Zsh command line. |
-| `pwdnote shell install` | Install the optional Zsh integration used by `paste`. |
+| `pwdnote shell install zsh` | Install the optional Zsh integration used by `paste`. |
+| `pwdnote shell support` | Show direct-paste support by shell. |
 | `pwdnote log` | Show commits where `.pwdnote.enc` changed. |
 | `pwdnote show HEAD~1` | Decrypt and print the note from a Git revision. |
 | `pwdnote diff HEAD~1 HEAD` | Show a readable diff between two encrypted note revisions. |
@@ -145,17 +146,6 @@ Copy it to the system clipboard:
 pwdnote copy 2
 ```
 
-Install the optional Zsh integration and insert it into the next Zsh prompt:
-
-```bash
-pwdnote shell install
-source ~/.zshrc
-pwdnote paste 2
-```
-
-After `pwdnote paste 2`, the selected text appears in the next Zsh command line.
-It is ready for review or editing and is not executed automatically.
-
 Short aliases are also available:
 
 ```bash
@@ -164,23 +154,62 @@ pwdnote y 2
 pwdnote p 2
 ```
 
-Numbering is 1-based; `one` and `first` select the first item. Direct insertion
-currently supports Zsh. Clipboard copying remains cross-platform, and the shell
-integration is optional: `cat` and `copy` work without it. None of these
-commands execute the stored content.
+Numbering is 1-based; `one` and `first` select the first item. Clipboard copying
+remains cross-platform. None of these commands execute the stored content.
 
-`pwdnote shell install` writes the generated integration to
+### Direct prompt insertion
+
+`pwdnote paste` currently requires Zsh. It works on macOS and Linux systems
+where Zsh is being used.
+
+Install the integration explicitly:
+
+```bash
+pwdnote shell install zsh
+source ~/.zshrc
+```
+
+Then:
+
+```bash
+pwdnote paste 2
+```
+
+places item 2 into the next Zsh command line without executing it. Bash, Fish,
+and PowerShell do not currently support direct insertion. Users of those shells
+can still preview or copy items:
+
+```bash
+pwdnote cat 2
+pwdnote copy 2
+```
+
+| Shell | Direct `paste` | `cat` | `copy` |
+| --- | ---: | ---: | ---: |
+| Zsh on macOS | Yes | Yes | Yes |
+| Zsh on Linux | Yes | Yes | Yes |
+| Bash | No | Yes | Yes |
+| Fish | No | Yes | Yes |
+| PowerShell | No | Yes | Yes |
+
+The shell integration is optional. `cat` and `copy` work without it on every
+supported shell. `pwdnote shell install` can detect `$SHELL` conservatively,
+but explicit `pwdnote shell install zsh` is preferred.
+
+The installer writes the generated integration to
 `~/.config/pwdnote/shell/pwdnote.zsh` (honouring `XDG_CONFIG_HOME`) and adds one
 managed source block to `~/.zshrc`. Inspect or remove it with:
 
 ```bash
-pwdnote shell status
-pwdnote shell print
-pwdnote shell uninstall
+pwdnote shell support
+pwdnote shell status zsh
+pwdnote shell print zsh
+pwdnote shell uninstall zsh
 ```
 
 `shell status` exits with status 1 when either installation piece is missing or
-out of date.
+out of date. Shells without direct-paste support can continue using `cat` and
+`copy`; pwdnote does not install Bash, Fish, or PowerShell integration files.
 
 ---
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import difflib
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -39,7 +38,7 @@ app.add_typer(config_app, name="config")
 key_app = typer.Typer(help="Manage the pwdnote encryption key.")
 app.add_typer(key_app, name="key")
 
-shell_app = typer.Typer(help="Manage the optional Zsh integration.")
+shell_app = typer.Typer(help="Manage and inspect shell integration.")
 app.add_typer(shell_app, name="shell")
 
 console = Console()
@@ -446,13 +445,16 @@ def paste(
         help="1-based item number; 'one' and 'first' select the first item.",
     ),
 ) -> None:
-    """Insert one Markdown list item into the Zsh command line.
+    """Insert one Markdown list item into a Zsh prompt.
 
-    Requires the optional Zsh integration and never executes the stored content.
+    Direct insertion requires Zsh on macOS or Linux. Bash, Fish, and PowerShell
+    are not currently supported. The stored content is never executed.
     """
     _err(
-        "Error: direct paste requires the pwdnote Zsh integration. "
-        "Run 'pwdnote shell install'."
+        "Error: direct paste requires the pwdnote Zsh integration.\n"
+        "It works on macOS and Linux systems running Zsh.\n"
+        "Run 'pwdnote shell install zsh'.\n"
+        "Other shells can use 'pwdnote cat' or 'pwdnote copy'."
     )
 
 
@@ -629,53 +631,175 @@ def config_init() -> None:
         console.print(f"Config already exists at {path}")
 
 
+def _unsupported_shell(shell: str) -> NoReturn:
+    display = shell_integration.shell_display_name(shell)
+    _err(
+        f"Error: direct paste integration is not currently available for {display}.\n"
+        "You can still use 'pwdnote cat' and 'pwdnote copy'."
+    )
+
+
+def _automatic_shell_error(shell: str | None) -> NoReturn:
+    if shell is None:
+        _err(
+            "Error: could not determine a supported shell.\n"
+            "Direct paste currently requires Zsh.\n"
+            "Run 'pwdnote shell install zsh' to install it explicitly."
+        )
+    display = shell_integration.shell_display_name(shell)
+    _err(
+        "Error: direct paste integration is currently available only for Zsh.\n"
+        f"Your configured shell appears to be {display}.\n"
+        "You can still use 'pwdnote cat' and 'pwdnote copy'.\n"
+        "To install the Zsh integration explicitly, run:\n"
+        "  pwdnote shell install zsh"
+    )
+
+
+def _select_shell(shell_name: str | None) -> tuple[str, bool]:
+    """Return a normalized shell and whether it was selected explicitly."""
+    if shell_name is None:
+        detected = shell_integration.detect_shell()
+        if detected != "zsh":
+            _automatic_shell_error(detected)
+        return detected, False
+
+    selected = shell_integration.normalize_shell(shell_name)
+    if selected is None:
+        _err(
+            f"Error: unrecognized shell '{shell_name}'. "
+            "Use zsh, bash, fish, powershell, or pwsh."
+        )
+    if selected != "zsh":
+        _unsupported_shell(selected)
+    return selected, True
+
+
+def _status_label(present: bool, current: bool) -> str:
+    if current:
+        return "present"
+    if present:
+        return "out of date"
+    return "missing"
+
+
 @shell_app.command("print")
-def shell_print() -> None:
-    """Print the pwdnote Zsh integration script."""
+def shell_print(
+    shell_name: str | None = typer.Argument(
+        None, metavar="[SHELL]", help="Shell name, for example zsh."
+    ),
+) -> None:
+    """Print integration code for a supported shell.
+
+    Example: pwdnote shell print zsh
+    """
+    _select_shell(shell_name)
     sys.stdout.write(shell_integration.render_zsh_integration())
 
 
 @shell_app.command("install")
-def shell_install() -> None:
-    """Install or update the optional Zsh integration."""
-    current_shell = os.environ.get("SHELL")
-    if current_shell and Path(current_shell).name != "zsh":
+def shell_install(
+    shell_name: str | None = typer.Argument(
+        None, metavar="[SHELL]", help="Shell name, for example zsh."
+    ),
+) -> None:
+    """Install integration for a supported shell.
+
+    Example: pwdnote shell install zsh
+    """
+    _, explicit = _select_shell(shell_name)
+    configured = shell_integration.detect_shell()
+    if not explicit:
+        console.print("Detected Zsh.")
+    elif configured != "zsh":
         print(
-            "Warning: installing Zsh integration while the current shell is not Zsh.",
+            "Warning: Zsh does not appear to be your configured shell.\n"
+            "The integration will be available when you start Zsh.",
             file=sys.stderr,
         )
     try:
         _, zshrc_path = shell_integration.install()
-    except OSError:
+    except (OSError, UnicodeError):
         _err("Error: unable to install the pwdnote Zsh integration.")
     console.print("Installed pwdnote Zsh integration.")
-    console.print(f"Restart Zsh or run: source {zshrc_path}")
-
-
-@shell_app.command("status")
-def shell_status() -> None:
-    """Check whether the Zsh integration is completely installed."""
-    if shell_integration.is_installed():
-        console.print("pwdnote Zsh integration is installed.")
-        return
-    _err(
-        "pwdnote Zsh integration is not installed.\n"
-        "Run 'pwdnote shell install'."
+    console.print(
+        "Restart Zsh or run: "
+        + shell_integration.render_source_command(zshrc_path),
+        soft_wrap=True,
     )
 
 
+@shell_app.command("status")
+def shell_status(
+    shell_name: str | None = typer.Argument(
+        None, metavar="[SHELL]", help="Shell name, for example zsh."
+    ),
+) -> None:
+    """Show integration status.
+
+    Example: pwdnote shell status zsh
+    """
+    _select_shell(shell_name)
+    status = shell_integration.get_status()
+    if status.complete:
+        console.print("pwdnote Zsh integration is installed.")
+    else:
+        console.print("pwdnote Zsh integration is incomplete.")
+    console.print(
+        "Integration file: "
+        + _status_label(
+            status.integration_file_present, status.integration_file_current
+        )
+    )
+    console.print(
+        ".zshrc source block: "
+        + _status_label(status.source_block_present, status.source_block_current)
+    )
+    if status.complete:
+        return
+    console.print("Run 'pwdnote shell install zsh' to repair it.")
+    raise typer.Exit(code=1)
+
+
 @shell_app.command("uninstall")
-def shell_uninstall() -> None:
-    """Remove only the pwdnote-managed Zsh integration."""
+def shell_uninstall(
+    shell_name: str | None = typer.Argument(
+        None, metavar="[SHELL]", help="Shell name, for example zsh."
+    ),
+) -> None:
+    """Remove installed shell integration.
+
+    Example: pwdnote shell uninstall zsh
+    """
+    _select_shell(shell_name)
     try:
         changed, zshrc_path = shell_integration.uninstall()
-    except OSError:
+    except (OSError, UnicodeError):
         _err("Error: unable to remove the pwdnote Zsh integration.")
     if not changed:
         console.print("pwdnote Zsh integration was not installed.")
         return
     console.print("Removed pwdnote Zsh integration.")
-    console.print(f"Restart Zsh or run: source {zshrc_path}")
+    console.print(
+        "Restart Zsh or run: "
+        + shell_integration.render_source_command(zshrc_path),
+        soft_wrap=True,
+    )
+
+
+@shell_app.command("support")
+def shell_support() -> None:
+    """Show shell integration support."""
+    console.print("Direct paste support:")
+    console.print()
+    console.print("  Zsh         Supported on macOS and Linux")
+    console.print("  Bash        Not currently supported")
+    console.print("  Fish        Not currently supported")
+    console.print("  PowerShell  Not currently supported")
+    console.print()
+    console.print("All shells can use:")
+    console.print("  pwdnote cat")
+    console.print("  pwdnote copy")
 
 
 # Built-in command aliases. Not user-configurable.

@@ -314,4 +314,4 @@ def test_version_flag(project_dir):
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert result.stdout.strip() == f"pwdnote {__version__}"
-    assert __version__ == "0.3.7"
+    assert __version__ == "0.3.8"

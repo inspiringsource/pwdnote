@@ -1,15 +1,15 @@
 {
-  "version": "0.3.7",
-  "title": "What’s new in v0.3.7",
+  "version": "0.3.8",
+  "title": "What’s new in v0.3.8",
   "items": [
-    "Added pwdnote copy <item> for clipboard copying.",
-    "pwdnote paste <item> now inserts into the next Zsh prompt.",
-    "Added optional Zsh integration management and short aliases."
+    "Added explicit and conservative shell selection.",
+    "Clarified that direct paste supports Zsh on macOS and Linux.",
+    "Added shell support reporting and safer unsupported-shell errors."
   ],
   "commands": [
-    "pwdnote cat 2",
-    "pwdnote copy 2",
-    "pwdnote shell install",
+    "pwdnote shell support",
+    "pwdnote shell install zsh",
+    "pwdnote shell status zsh",
     "pwdnote paste 2"
   ]
 }
