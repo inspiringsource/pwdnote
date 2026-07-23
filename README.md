@@ -20,7 +20,17 @@ commit; without your key it is just ciphertext.
 
 ## Demo
 
+The GIF below shows how to initialize pwdnote and add text to an encrypted project note from the terminal.
+
 ![pwdnote demo](https://raw.githubusercontent.com/inspiringsource/pwdnote/main/demo/shortDemo.gif)
+
+You can revise the note later using pwdnote’s edit mode. Alternatively, the companion VS Code extension lets you edit it directly in VS Code.
+
+The note is stored in `.pwdnote.enc` as encrypted data. If this file is committed to a repository, anyone without the corresponding local key sees only ciphertext—not the readable note:
+
+![pwdnote without key](https://raw.githubusercontent.com/inspiringsource/pwdnote/main/demo/withoutKey.png)
+
+The encryption key is stored locally and is not committed to the repository. pwdnote is intended for private project notes, not for storing passwords or other credentials.
 
 A companion [VS Code extension](https://marketplace.visualstudio.com/items?itemName=inspiringsource.pwdnote-vscode) is also available.
 
