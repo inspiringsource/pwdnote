@@ -28,7 +28,7 @@ You can revise the note later using pwdnote’s edit mode. Alternatively, the co
 
 The note is stored in `.pwdnote.enc` as encrypted data. If this file is committed to a repository, anyone without the corresponding local key sees only ciphertext—not the readable note:
 
-![pwdnote without key](https://raw.githubusercontent.com/inspiringsource/pwdnote/main/demo/withoutKey.png)
+![pwdnote without key](demo/withoutKey.png)
 
 The encryption key is stored locally and is not committed to the repository. pwdnote is intended for private project notes, not for storing passwords or other credentials.
 
