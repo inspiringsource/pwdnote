@@ -42,9 +42,28 @@ A companion [VS Code extension](https://marketplace.visualstudio.com/items?itemN
 uv tool install pwdnote
 ```
 
-Use uv 0.13.4 or newer (check with `uv --version`; update with
-`uv self update`). Older uv releases trust the compromised eMudhra/emSign CA
-certificates.
+Use uv 0.13.4 or newer (check with `uv --version`). Older uv releases trust
+the compromised eMudhra/emSign CA certificates, so update them as described in
+the [Python security notice](https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576/1)
+rather than with a plain `uv self update`:
+
+- **Standalone installer:** update using your operating system's certificate
+  store instead of uv's built-in one (older uv reads `UV_NATIVE_TLS`, newer uv
+  `UV_SYSTEM_CERTS`):
+
+  ```bash
+  UV_SYSTEM_CERTS=true UV_NATIVE_TLS=true uv self update
+  ```
+
+- **Installed with pip:** first install pip 26.2.2 from its hash-pinned URL,
+  then upgrade uv:
+
+  ```bash
+  python -m pip install "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+  python -m pip install --upgrade uv
+  ```
+
+- **Homebrew or another package manager:** upgrade uv through that manager.
 
 That's it — no further setup. The encryption key is generated automatically on
 first use.
