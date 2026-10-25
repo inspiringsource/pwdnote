@@ -42,6 +42,10 @@ A companion [VS Code extension](https://marketplace.visualstudio.com/items?itemN
 uv tool install pwdnote
 ```
 
+Use uv 0.13.4 or newer (check with `uv --version`; update with
+`uv self update`). Older uv releases trust the compromised eMudhra/emSign CA
+certificates.
+
 That's it — no further setup. The encryption key is generated automatically on
 first use.
 
@@ -437,6 +441,10 @@ uv sync                 # install deps + dev tools
 uv run pytest           # run the test suite
 uv run pwdnote --help   # try the CLI from source
 ```
+
+Development requires uv 0.13.4 or newer; `pyproject.toml` enforces this
+through `[tool.uv] required-version`, and the publish workflow reads the same
+setting.
 
 Issues and pull requests are welcome. Please keep the tool small and reliable —
 new storage/key backends should slot in behind the existing abstractions.

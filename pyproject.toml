@@ -43,6 +43,11 @@ dev = [
     "pytest-cov>=5",
 ]
 
+[tool.uv]
+# uv < 0.13.4 trusts the compromised eMudhra/emSign CA certificates.
+# setup-uv in CI also reads this to choose the uv version.
+required-version = ">=0.13.4"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
